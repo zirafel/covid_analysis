@@ -26,6 +26,8 @@ from config import *
 class TweetBatchCollector(object):
     """ Tweet batch collector """
 
+
+
     def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret):
         """
         :param consumer_key: consumer key
@@ -37,9 +39,10 @@ class TweetBatchCollector(object):
         # set twitter keys/tokens
         auth = OAuthHandler(consumer_key, consumer_secret)
         auth.set_access_token(access_token, access_token_secret)
+        self.stored_db_tweets = None
         self.api = tweepy.API(auth)
 
-    def collect_tweets(self, search_words, date_since, maxId, numTweets, numRuns ):
+    def collect_tweets(self, search_words, date_since, sinceId, maxId, numTweets, numRuns ):
         ## Arguments:
         # search_words -> define a string of keywords for this function to extract
         # date_since -> define a date from which to start extracting the tweets
@@ -65,7 +68,7 @@ class TweetBatchCollector(object):
                 # Collect tweets using the Cursor object
                 # .Cursor() returns an object that you can iterate or loop over to access the data collected.
                 # Each item in the iterator has various attributes that you can access to get information about each tweet
-                tweets = tweepy.Cursor(self.api.search, q=search_words, lang="it", since=date_since, max_id = max_id, tweet_mode='extended').items(
+                tweets = tweepy.Cursor(self.api.search, q=search_words, lang="it", since=date_since, since_id = sinceId, max_id = max_id, tweet_mode='extended').items(
                     numTweets)
 
                 # Store these tweets into a python list
@@ -161,17 +164,19 @@ class TweetBatchCollector(object):
         db_tweets.to_csv(filename, index=False)
 
     def get_max_id(self):
-        db_tweets = self.read_db()
-        if (db_tweets is None):
+        if(self.stored_db_tweets is None):
+            self.stored_db_tweets = self.read_db()
+        if (self.stored_db_tweets is None):
             return 0;
-        max_id = db_tweets.id.max()
+        max_id = self.stored_db_tweets.id.max()
         return max_id
 
     def get_min_id(self):
-        db_tweets = self.read_db()
-        if(db_tweets is None):
+        if (self.stored_db_tweets is None):
+            self.stored_db_tweets = self.read_db()
+        if (self.stored_db_tweets is None):
             return 0;
-        min_id = db_tweets.id.min()
+        min_id = self.stored_db_tweets.id.min()
         return min_id
 
     def read_db(self):
@@ -196,6 +201,8 @@ if __name__ == '__main__':
     # set twitter keys/tokens
     tweetBatchCollector = TweetBatchCollector(consumer_key=consumer_key, consumer_secret=consumer_secret, access_token=access_token, access_token_secret=access_token_secret )
     #get min id from previous tweets
-    minId = tweetBatchCollector.get_min_id()-1
+    #minId = tweetBatchCollector.get_min_id()-1
+    # get max id from previous tweets
+    maxId = tweetBatchCollector.get_max_id() - 1
     #start collect
-    tweetBatchCollector.collect_tweets("covid", "2020-04-01", minId, 2500, 4)
+    tweetBatchCollector.collect_tweets("covid", "2020-06-07", maxId, 0, 2500, 4)
