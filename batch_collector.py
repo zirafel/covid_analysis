@@ -61,12 +61,13 @@ class TweetBatchCollector(object):
 
         # Define a for-loop to generate tweets at regular intervals
         for i in range(0, numRuns):
-            try:
-                # We will time how long it takes to scrape tweets for each run:
-                start_run = time.time()
 
-                # Collect tweets using the Cursor object
-                # .Cursor() returns an object that you can iterate or loop over to access the data collected.
+            # We will time how long it takes to scrape tweets for each run:
+            start_run = time.time()
+            noTweets = 0
+            # Collect tweets using the Cursor object
+            # .Cursor() returns an object that you can iterate or loop over to access the data collected.
+            try:
                 # Each item in the iterator has various attributes that you can access to get information about each tweet
                 tweets = tweepy.Cursor(self.api.search, q=search_words, lang="it", since=date_since, since_id = sinceId, max_id = max_id, tweet_mode='extended').items(
                     numTweets)
@@ -89,7 +90,7 @@ class TweetBatchCollector(object):
                 # tweet.coordinates - coordinates of tweet
                 # tweet.placeName - place name
                 # Begin scraping the tweets individually:
-                noTweets = 0
+
                 for tweet in tweet_list:
 
                     # Pull the values
@@ -134,16 +135,15 @@ class TweetBatchCollector(object):
 
                     # increase counter - noTweets
                     noTweets += 1
-
-                # Run ended:
-                end_run = time.time()
-                duration_run = round(end_run - start_run, 2)
             except Exception as ex:
                 print(ex)
                 print('Exception during collecting tweets,trying to continue..')
-
+            # Run ended:
+            end_run = time.time()
+            duration_run = round(end_run - start_run, 2)
             print('no. of tweets scraped for run {} is {}'.format(i, noTweets))
             print('time take for {} run to complete is {}'.format(i, duration_run))
+
 
             #get max id
             if(len(db_tweets))>0:
