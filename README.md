@@ -1,2 +1,2 @@
-# exam_bigdata_prj
-Progetto per esame Big Data
+# Covid analysis
+Covid analysis project
